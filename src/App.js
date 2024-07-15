@@ -15,7 +15,7 @@ function Board({ xIsNext, squares, onPlay }) {
     const nextSquares = squares.slice();
     if (xIsNext) nextSquares[i] = "X";
     else nextSquares[i] = "O";
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   }
 
   const winner = calculateWinner(squares);
@@ -53,14 +53,19 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([
+    { squares: Array(9).fill(null), location: null },
+  ]);
   const [currentMove, setCurrentMove] = useState(0);
   const [ascending, setAscending] = useState(true);
   const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const currentSquares = history[currentMove].squares;
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  function handlePlay(nextSquares, i) {
+    const nextHistory = [
+      ...history.slice(0, currentMove + 1),
+      { squares: nextSquares, location: i },
+    ];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
@@ -73,11 +78,20 @@ export default function Game() {
     setAscending(!ascending);
   }
 
-  const moves = history.map((_squares, move) => {
-    const description = move > 0 ? `Go to move #${move}` : "Go to game start";
+  const moves = history.map(({ location: rawLocation }, move) => {
+    const row = Math.floor(rawLocation / 3) + 1;
+    const col = rawLocation % 3;
+    const location = rawLocation === null ? "" : `(${row}, ${col})`;
+
+    const description =
+      move > 0 ? `Go to move #${move} ${location}` : "Go to game start";
 
     if (move === currentMove)
-      return <li key={move}>You are at move #{move}</li>;
+      return (
+        <li key={move}>
+          You are at move #{move} {location}
+        </li>
+      );
     else
       return (
         <li key={move}>
